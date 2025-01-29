@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Réservation d'Hôtels</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <header>
@@ -37,23 +37,51 @@
     <div id="popup" class="popup" style="display:none;">
         <div class="popup-content">
             <span class="close" onclick="closePopup()">&times;</span>
-            <h2>Ajouter un Hôtel</h2>
+            <h2 id="popup-title">Ajouter un Hôtel</h2>
             <form id="hotelForm">
-                <label for="hotelName">Nom de l'Hôtel:</label>
-                <input type="text" id="hotelName" name="hotelName" required>
-                <label for="hotelPrice">Prix par nuit:</label>
-                <input type="number" id="hotelPrice" name="hotelPrice" required>
-                <label for="hotelLocation">Lieu de l'Hôtel:</label>
-                <input type="text" id="hotelLocation" name="hotelLocation" required>
-                <label for="hotelImage">URL de l'image de l'Hôtel:</label>
-                <input type="url" id="hotelImage" name="hotelImage" required>
-                <button type="button" onclick="addHotel()">Ajouter</button>
+                <div class="form-step" id="step1">
+                    <label for="hotelName">Nom de l'Hôtel:</label>
+                    <input type="text" id="hotelName" name="hotelName" required>
+                    <label for="hotelPrice">Prix par nuit:</label>
+                    <input type="number" id="hotelPrice" name="hotelPrice" required>
+                    <label for="hotelLocation">Lieu de l'Hôtel:</label>
+                    <input type="text" id="hotelLocation" name="hotelLocation" required>
+                    <label for="hotelImage">URL de l'image de l'Hôtel:</label>
+                    <input type="url" id="hotelImage" name="hotelImage" required>
+                    <button type="button" onclick="nextStep()">Suivant</button>
+                </div>
+                <div class="form-step" id="step2" style="display:none;">
+                    <label for="roomOptions">Options de Chambre:</label>
+                    <input type="text" id="roomOptions" name="roomOptions" placeholder="Séparées par des virgules" required>
+                    <label for="activities">Activités:</label>
+                    <input type="text" id="activities" name="activities" placeholder="Séparées par des virgules" required>
+                    <label for="hotelStars">Nombre d'Étoiles:</label>
+                    <input type="number" id="hotelStars" name="hotelStars" min="1" max="5" required>
+                    <button type="button" onclick="previousStep()">Précédent</button>
+                    <button type="button" onclick="saveHotel()">Ajouter</button>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
-        function openPopup() {
+        let currentHotel = null;
+
+        function openPopup(hotel = null) {
+            currentHotel = hotel;
+            if (hotel) {
+                document.getElementById('popup-title').innerText = 'Modifier un Hôtel';
+                document.getElementById('hotelName').value = hotel.querySelector('h2').innerText;
+                document.getElementById('hotelPrice').value = hotel.querySelector('p').innerText.split(': ')[1].split('€')[0];
+                document.getElementById('hotelLocation').value = hotel.querySelectorAll('p')[1].innerText.split(': ')[1];
+                document.getElementById('hotelImage').value = hotel.querySelector('img').src;
+                document.getElementById('roomOptions').value = Array.from(hotel.querySelectorAll('.options ul')[0].children).map(li => li.innerText).join(', ');
+                document.getElementById('activities').value = Array.from(hotel.querySelectorAll('.options ul')[1].children).map(li => li.innerText).join(', ');
+                document.getElementById('hotelStars').value = hotel.querySelectorAll('p')[2].innerText.split(': ')[1];
+            } else {
+                document.getElementById('popup-title').innerText = 'Ajouter un Hôtel';
+                document.getElementById('hotelForm').reset();
+            }
             document.getElementById('popup').style.display = 'block';
         }
 
@@ -61,44 +89,60 @@
             document.getElementById('popup').style.display = 'none';
         }
 
-        function addHotel() {
+        function nextStep() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+
+        function previousStep() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+        }
+
+        function saveHotel() {
             const hotelName = document.getElementById('hotelName').value;
             const hotelPrice = document.getElementById('hotelPrice').value;
             const hotelLocation = document.getElementById('hotelLocation').value;
             const hotelImage = document.getElementById('hotelImage').value;
+            const roomOptions = document.getElementById('roomOptions').value.split(',');
+            const activities = document.getElementById('activities').value.split(',');
+            const hotelStars = document.getElementById('hotelStars').value;
 
-            if (hotelName && hotelPrice && hotelLocation && hotelImage) {
-                const hotelGrid = document.getElementById('hotel-grid');
-                const hotelSection = document.createElement('section');
-                hotelSection.className = 'hotel';
-                hotelSection.innerHTML = `
-                    <h2>${hotelName}</h2>
-                    <img src="${hotelImage}" alt="Photo de l'Hôtel ${hotelName}">
-                    <p>Prix: ${hotelPrice}€ par nuit</p>
-                    <p>Lieu: ${hotelLocation}</p>
-                    <button onclick="toggleOptions('${hotelName}')">Voir les options</button>
-                    <button onclick="editHotel(this)">Modifier</button>
-                    <button onclick="deleteHotel(this)">Supprimer</button>
-                    <div id="${hotelName}" class="options" style="display:none;">
-                        <h3>Options de Chambre</h3>
-                        <ul>
-                            <li>Chambre Simple</li>
-                            <li>Chambre Double</li>
-                            <li>Suite</li>
-                        </ul>
-                        <h3>Activités</h3>
-                        <ul>
-                            <li>Piscine</li>
-                            <li>Spa</li>
-                            <li>Gym</li>
-                        </ul>
-                        <button onclick="showReservation()">Réserver</button>
-                    </div>
-                `;
-                hotelGrid.appendChild(hotelSection);
+            if (hotelName && hotelPrice && hotelLocation && hotelImage && roomOptions && activities && hotelStars) {
+                if (currentHotel) {
+                    currentHotel.querySelector('h2').innerText = hotelName;
+                    currentHotel.querySelector('img').src = hotelImage;
+                    currentHotel.querySelector('p').innerText = `Prix: ${hotelPrice}€ par nuit`;
+                    currentHotel.querySelectorAll('p')[1].innerText = `Lieu: ${hotelLocation}`;
+                    currentHotel.querySelectorAll('p')[2].innerText = `Étoiles: ${hotelStars}`;
+                    currentHotel.querySelector('.options ul').innerHTML = roomOptions.map(option => `<li>${option.trim()}</li>`).join('');
+                    currentHotel.querySelectorAll('.options ul')[1].innerHTML = activities.map(activity => `<li>${activity.trim()}</li>`).join('');
+                } else {
+                    const hotelGrid = document.getElementById('hotel-grid');
+                    const hotelSection = document.createElement('section');
+                    hotelSection.className = 'hotel';
+                    hotelSection.innerHTML = `
+                        <h2>${hotelName}</h2>
+                        <img src="${hotelImage}" alt="Photo de l'Hôtel ${hotelName}">
+                        <p>Prix: ${hotelPrice}€ par nuit</p>
+                        <p>Lieu: ${hotelLocation}</p>
+                        <p>Étoiles: ${hotelStars}</p>
+                        <button onclick="toggleOptions('${hotelName}')">Voir les options</button>
+                        <button onclick="openPopup(this.parentElement)">Modifier</button>
+                        <button onclick="deleteHotel(this)">Supprimer</button>
+                        <div id="${hotelName}" class="options" style="display:none;">
+                            <h3>Options de Chambre</h3>
+                            <ul>${roomOptions.map(option => `<li>${option.trim()}</li>`).join('')}</ul>
+                            <h3>Activités</h3>
+                            <ul>${activities.map(activity => `<li>${activity.trim()}</li>`).join('')}</ul>
+                            <button onclick="showReservation()">Réserver</button>
+                        </div>
+                    `;
+                    hotelGrid.appendChild(hotelSection);
+                }
                 closePopup();
             } else {
-                alert("Toutes les informations sont nécessaires pour ajouter un hôtel.");
+                alert("Toutes les informations sont nécessaires pour ajouter ou modifier un hôtel.");
             }
         }
 
@@ -118,23 +162,6 @@
         function deleteHotel(button) {
             const hotelSection = button.parentElement;
             hotelSection.remove();
-        }
-
-        function editHotel(button) {
-            const hotelSection = button.parentElement;
-            const hotelName = prompt("Nom de l'Hôtel:", hotelSection.querySelector('h2').innerText);
-            const hotelPrice = prompt("Prix par nuit:", hotelSection.querySelector('p').innerText.split(': ')[1].split('€')[0]);
-            const hotelLocation = prompt("Lieu de l'Hôtel:", hotelSection.querySelectorAll('p')[1].innerText.split(': ')[1]);
-            const hotelImage = prompt("URL de l'image de l'Hôtel:", hotelSection.querySelector('img').src);
-
-            if (hotelName && hotelPrice && hotelLocation && hotelImage) {
-                hotelSection.querySelector('h2').innerText = hotelName;
-                hotelSection.querySelector('img').src = hotelImage;
-                hotelSection.querySelector('p').innerText = `Prix: ${hotelPrice}€ par nuit`;
-                hotelSection.querySelectorAll('p')[1].innerText = `Lieu: ${hotelLocation}`;
-            } else {
-                alert("Toutes les informations sont nécessaires pour modifier l'hôtel.");
-            }
         }
     </script>
 </body>

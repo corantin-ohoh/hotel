@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Réservation d'Hôtels</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
@@ -22,7 +22,7 @@
     </header>
     <main>
         <div class="controls">
-            <button onclick="addHotel()">Ajouter un Hôtel</button>
+            <button onclick="openPopup()">Ajouter un Hôtel</button>
         </div>
         <div class="hotel-grid" id="hotel-grid">
             <!-- Les hôtels seront ajoutés ici -->
@@ -33,12 +33,39 @@
             <!-- Formulaire de réservation -->
         </section>
     </main>
+
+    <div id="popup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <h2>Ajouter un Hôtel</h2>
+            <form id="hotelForm">
+                <label for="hotelName">Nom de l'Hôtel:</label>
+                <input type="text" id="hotelName" name="hotelName" required>
+                <label for="hotelPrice">Prix par nuit:</label>
+                <input type="number" id="hotelPrice" name="hotelPrice" required>
+                <label for="hotelLocation">Lieu de l'Hôtel:</label>
+                <input type="text" id="hotelLocation" name="hotelLocation" required>
+                <label for="hotelImage">URL de l'image de l'Hôtel:</label>
+                <input type="url" id="hotelImage" name="hotelImage" required>
+                <button type="button" onclick="addHotel()">Ajouter</button>
+            </form>
+        </div>
+    </div>
+
     <script>
+        function openPopup() {
+            document.getElementById('popup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
         function addHotel() {
-            const hotelName = prompt("Nom de l'Hôtel:");
-            const hotelPrice = prompt("Prix par nuit:");
-            const hotelLocation = prompt("Lieu de l'Hôtel:");
-            const hotelImage = prompt("URL de l'image de l'Hôtel:");
+            const hotelName = document.getElementById('hotelName').value;
+            const hotelPrice = document.getElementById('hotelPrice').value;
+            const hotelLocation = document.getElementById('hotelLocation').value;
+            const hotelImage = document.getElementById('hotelImage').value;
 
             if (hotelName && hotelPrice && hotelLocation && hotelImage) {
                 const hotelGrid = document.getElementById('hotel-grid');
@@ -69,6 +96,7 @@
                     </div>
                 `;
                 hotelGrid.appendChild(hotelSection);
+                closePopup();
             } else {
                 alert("Toutes les informations sont nécessaires pour ajouter un hôtel.");
             }

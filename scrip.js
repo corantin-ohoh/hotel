@@ -4,11 +4,11 @@ import cors from 'cors';
 const app = express();
 app.use(cors());
 app.use(express.json());
-const port = 3000; 
+const port = 3306; 
 
 const connection = await mysql.createConnection({ 
     host: '127.0.0.1',
-    database: 'dm',
+    database: 'toki--tel',
     user: 'root',
     password: 'root'
 });
